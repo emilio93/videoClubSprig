@@ -3,10 +3,13 @@ package videoClub.bd;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+
 import java.util.Properties;
+
 import videoClub.log.Informer;
 
-/**
+/**getMySQLDataSource
  * Maneja la conexión con la base de datos.
  * @author Emilio Rojas
  */
@@ -26,6 +29,13 @@ public final class BD {
     */
     public BD(boolean conectar) {
         inf = Informer.get();
+        try {
+            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+        } catch (SQLException e) {
+            inf.log("No se logró registrar el driver.", Informer.LVL_WARNING);
+            inf.log(e.getMessage(), Informer.LVL_ERROR);
+            error = "Driver no registrado: " + e.getMessage();
+        }
         if (conectar) conectar();
     }
 
@@ -79,7 +89,6 @@ public final class BD {
     public Connection conectar() {
         setConfig();
         try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
             con = DriverManager.getConnection(url, user, pass);
             inf.log("Conexión con la bse de datos creada.", Informer.LVL_DEBUG);
         } catch (Exception e) {
@@ -96,7 +105,7 @@ public final class BD {
      * @return La conexión a la base de datos.
      */
     public Connection getCon() {
-        if(con == null) conectar();
+        conectar();
         return con;
     }
 }

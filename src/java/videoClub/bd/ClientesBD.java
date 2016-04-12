@@ -26,7 +26,6 @@ public class ClientesBD extends Consultor{
             );
             exito = stmt.executeUpdate() == 1;
             inf.log("Agregando cliente a la base de datos: " + Boolean.toString(exito)); 
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró agregar el cliente a la base de datos: " + e.getMessage()));
             inf.log(e.getMessage());
@@ -85,7 +84,6 @@ public class ClientesBD extends Consultor{
                 pagina
             );
             lc = rsToListaClientes(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró leer los clientes de "
                     + "la base de datos: " + e.getMessage()));
@@ -99,7 +97,6 @@ public class ClientesBD extends Consultor{
             PreparedStatement stmt = getCon()
                     .prepareStatement("call getClientesMorosos()");
             lc = rsToListaClientes(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener la lista de los clientes morososs."));
             inf.log(e.getMessage());
@@ -123,7 +120,6 @@ public class ClientesBD extends Consultor{
 
             exito = stmt.executeUpdate() == 1;
             inf.log("Actualizando cliente en la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log("No se logró actualizar el cliente con cedula " + cliente.getCedula() + " de la base de datos.");
             inf.log(e.getMessage());
@@ -146,7 +142,6 @@ public class ClientesBD extends Consultor{
                 setError("No se pudo eliminar el cliente de la base de datos. " + getError());
             }
             inf.log("Eliminando cliente en la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log("No se logró eliminar el cliente con id " + id + " de la base de datos.");
             inf.log(e.getMessage());
@@ -163,7 +158,6 @@ public class ClientesBD extends Consultor{
                     .prepareStatement("call esMoroso(?)");
             stmt.setInt(1, obtenerConCedula(cedula));
             moroso = stmt.executeQuery().getInt("moroso") > 0;
-            close();
         } catch (Exception e) {
             inf.log("No se logró determinar la morosidad del cliente con cedula " + cedula);
             inf.log(e.getMessage());
@@ -178,7 +172,6 @@ public class ClientesBD extends Consultor{
                     .prepareStatement("call contarPrestamosCliente(?)");
             stmt.setInt(1, obtenerConCedula(cedula));
             prestamos = stmt.executeQuery().getInt("prestamos");
-            close();
         } catch (Exception e) {
             inf.log("No se logró contar los prestamos del cliente con cedula " + cedula);
             inf.log(e.getMessage());
@@ -230,4 +223,6 @@ public class ClientesBD extends Consultor{
 
         return lc;
     }
+    
+    
 }

@@ -63,7 +63,6 @@ public class PrestamosBD extends Consultor{
             }
             if (!exito) setError( getError() + " No se pudo agregar el préstamo.");
             inf.log("Agregando préstamo a la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró agregar el préstamo a la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());
@@ -88,7 +87,6 @@ public class PrestamosBD extends Consultor{
                     rs.getInt("devuelta") == 1
                 );
             }
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener el préstamo de la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());
@@ -106,7 +104,6 @@ public class PrestamosBD extends Consultor{
             PreparedStatement stmt = getCon()
                     .prepareStatement("call getPrestamos()");
             lp = rsToListaPrestamos(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener los préstamos de la base de datos."));
             inf.log(e.getMessage());
@@ -125,7 +122,6 @@ public class PrestamosBD extends Consultor{
                     .prepareStatement("call getPrestamosCliente(?)");
             stmt.setInt(1, cedula);
             lp = rsToListaPrestamos(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener los préstamos de la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());
@@ -140,7 +136,6 @@ public class PrestamosBD extends Consultor{
                     .prepareStatement("call getPrestamosPelicula(?)");
             stmt.setString(1, titulo);
             lp = rsToListaPrestamos(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener los préstamos de la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());
@@ -160,7 +155,6 @@ public class PrestamosBD extends Consultor{
             stmt.setInt(1, idCliente);
             stmt.setInt(2, idPelicula);
             lp = rsToListaPrestamos(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener los préstamos de la base de datos."));
             inf.log(e.getMessage());
@@ -180,7 +174,6 @@ public class PrestamosBD extends Consultor{
             stmt.setInt(1, idPrestamo);
             exito = stmt.executeUpdate() == 1;
             inf.log("Finalizando préstamo en la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró finalizar el préstamo en la base de datos."));
             inf.log(e.getMessage());
@@ -200,7 +193,6 @@ public class PrestamosBD extends Consultor{
             stmt.setInt(1, idPrestamo);
             exito = stmt.executeUpdate() == 1;
             inf.log("Reactivando préstamo en la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró reactivar el préstamo en la base de datos."));
             inf.log(e.getMessage());
@@ -214,7 +206,6 @@ public class PrestamosBD extends Consultor{
             PreparedStatement stmt = getCon()
                     .prepareStatement("call getPrestamosConMora()");
             lp = rsToListaPrestamos(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener los préstamos de la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());

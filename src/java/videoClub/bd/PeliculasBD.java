@@ -53,9 +53,8 @@ public class PeliculasBD extends Consultor{
             );
             exito = stmt.executeUpdate() == 1;
             inf.log("Agregando película a la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
-            inf.log(setError("No se logró agregar la película a la base de datos."));
+            inf.log(setError("No se logró agregar la película a la base de datos. " + e.getMessage()));
             inf.log(e.getMessage());
         }
         return exito;
@@ -74,7 +73,6 @@ public class PeliculasBD extends Consultor{
                 pagina
             );
             lp = rsToListaPeliculas(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró leer las películas de "
                     + "la base de datos: " + e.getMessage()));
@@ -156,7 +154,6 @@ public class PeliculasBD extends Consultor{
             PreparedStatement stmt = getCon()
                     .prepareStatement("call getPeliculasEnMora()");
             lc = rsToListaPeliculas(stmt.executeQuery());
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró obtener la lista de las películas en mora."));
             inf.log(e.getMessage());
@@ -182,7 +179,6 @@ public class PeliculasBD extends Consultor{
             );
             exito = stmt.executeUpdate() == 1;
             inf.log("Actualizando película en la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró actualizar la película en la base de datos." + e.getMessage()));
             inf.log(e.getMessage());
@@ -204,7 +200,6 @@ public class PeliculasBD extends Consultor{
                 setError("No se pudo eliminar el cliente de la base de datos. " + getError());
             }
             inf.log("Borrando película de la base de datos: " + Boolean.toString(exito));
-            close();
         } catch (Exception e) {
             inf.log(setError("No se logró eliminad la película de la base de datos."));
             inf.log(e.getMessage());
