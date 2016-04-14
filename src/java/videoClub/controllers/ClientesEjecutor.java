@@ -19,68 +19,52 @@ public class ClientesEjecutor {
     private ClientesBD cbd;
     private boolean exito;
     private Gson gson;
-    
-    
+
     public ClientesEjecutor() {
         cbd = new ClientesBD();
         gson = new Gson();
     }
-    
+
     @RequestMapping(
-            value="mostrar", 
-            method=RequestMethod.GET, 
+            value="mostrar",
+            method=RequestMethod.GET,
             produces="application/json")
     public ModelAndView mostrar() {
-        ModelAndView mv = new ModelAndView();
         ArrayList clientes = cbd.obtener();
         exito = clientes != null;
-        
+
         JsonObject jo = new JsonObject();
-        jo.add("clientes", gson.toJsonTree(clientes, new TypeToken<ArrayList<Cliente> >(){}.getType()));
+        jo.add("clientes", gson.toJsonTree(clientes,
+            new TypeToken<ArrayList<Cliente> >(){}.getType()));
         jo.addProperty("success", exito);
-        String error = cbd.getError() == null? "": cbd.getError();
-        jo.addProperty("error", error);
-        
-        
-        mv.addObject("data", jo);
-        mv.setViewName("api/imprimir");
-        return mv;
+        jo.addProperty("error", cbd.getError() == null? "": cbd.getError());
+
+        return new ModelAndView("api/imprimir", "data", jo);
     }
-    
+
     @RequestMapping(
-            value="mostrar/{conjunto}", 
-            method=RequestMethod.GET, 
+            value="mostrar/{conjunto}",
+            method=RequestMethod.GET,
             produces="application/json")
     public ModelAndView mostrar(
-            @PathVariable("conjunto") String conjunto, 
+            @PathVariable("conjunto") String conjunto,
             @RequestParam(value="cedula")int cedula
     ) {
-        ModelAndView mv = new ModelAndView();
-        
         ArrayList clientes = null;
         switch (conjunto) {
-            // Obtiene los clientes morosos.
             case "morosos":
                 clientes = cbd.clientesMorosos();
                 exito = clientes != null;
                 break;
 
-            // Obtiene cliente por cedula.
             case "cedula":
                 clientes = new ArrayList<>();
                 clientes.add(cbd.obtener(cedula));
-                exito = clientes != null && clientes.size() > 0 && clientes.get(0) != null;
+                exito = clientes != null &&
+                        clientes.size() > 0 &&
+                        clientes.get(0) != null;
                 break;
 
-            // Obtiene clientes según cantidad y página.
-            case "pagina":
-                //clientes = cbd.obtener(
-                //        Integer.parseInt(request.getParameter("cantidad")), 
-                //        Integer.parseInt(request.getParameter("pagina")));
-                exito = clientes != null;
-                break;
-
-            // Obtiene todos los clientes.
             case "todos":
                 clientes = cbd.obtener();
                 exito = clientes != null;
@@ -92,19 +76,17 @@ public class ClientesEjecutor {
                 break;
         }
         JsonObject jo = new JsonObject();
-        jo.add("clientes", gson.toJsonTree(clientes, new TypeToken<ArrayList<Cliente> >(){}.getType()));
+        jo.add("clientes", gson.toJsonTree(clientes,
+            new TypeToken<ArrayList<Cliente> >(){}.getType()));
         jo.addProperty("success", exito);
         jo.addProperty("error", cbd.getError());
-        
-        
-        mv.addObject("data", jo);
-        mv.setViewName("api/imprimir");
-        return mv;
+
+        return new ModelAndView("api/imprimir", "data", jo);
     }
-    
+
     @RequestMapping(
-            value="agregar", 
-            method=RequestMethod.POST, 
+            value="agregar",
+            method=RequestMethod.POST,
             produces="application/json")
     public ModelAndView agregar(
             @RequestParam(value="cedula") int cedula,
@@ -115,22 +97,19 @@ public class ClientesEjecutor {
             @RequestParam(value="email") String email,
             @RequestParam(value="direccion") String direccion
     ) {
-        ModelAndView mv = new ModelAndView();
-        
-        Cliente cliente = new Cliente(cedula, nombre, apellido1, apellido2, telefono, email, direccion);
+        Cliente cliente = new Cliente(cedula, nombre, apellido1, apellido2,
+            telefono, email, direccion);
         exito = cbd.agregar(cliente);
         JsonObject jo = new JsonObject();
         jo.addProperty("success", exito);
         jo.addProperty("error", cbd.getError());
-        
-        mv.addObject("data", jo);
-        mv.setViewName("api/imprimir");
-        return mv;
+
+        return new ModelAndView("api/imprimir", "data", jo);
     }
-    
+
     @RequestMapping(
-            value="actualizar", 
-            method=RequestMethod.POST, 
+            value="actualizar",
+            method=RequestMethod.POST,
             produces="application/json")
     public ModelAndView actualizar(
             @RequestParam(value="id") int id,
@@ -142,34 +121,27 @@ public class ClientesEjecutor {
             @RequestParam(value="email") String email,
             @RequestParam(value="direccion") String direccion
     ) {
-        ModelAndView mv = new ModelAndView();
-        
         Cliente cliente = new Cliente(id, cedula, nombre, apellido1, apellido2, telefono, email, direccion);
         exito = cbd.actualizar(cliente);
         JsonObject jo = new JsonObject();
         jo.addProperty("success", exito);
         jo.addProperty("error", cbd.getError());
-        
-        mv.addObject("data", jo);
-        mv.setViewName("api/imprimir");
-        return mv;
+
+        return new ModelAndView("api/imprimir", "data", jo);
     }
-    
+
     @RequestMapping(
-            value="eliminar", 
-            method=RequestMethod.POST, 
+            value="eliminar",
+            method=RequestMethod.POST,
             produces="application/json")
     public ModelAndView eliminar(
             @RequestParam(value="id") int id
     ) {
-        ModelAndView mv = new ModelAndView();
         exito = cbd.eliminar(id);
         JsonObject jo = new JsonObject();
         jo.addProperty("success", exito);
         jo.addProperty("error", cbd.getError());
-        
-        mv.addObject("data", jo);
-        mv.setViewName("api/imprimir");
-        return mv;
+
+        return new ModelAndView("api/imprimir", "data", jo);
     }
 }

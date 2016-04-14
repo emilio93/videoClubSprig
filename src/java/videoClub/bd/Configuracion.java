@@ -2,7 +2,6 @@ package videoClub.bd;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.logging.Level;
 import videoClub.log.Informer;
 
 /**
@@ -31,12 +30,8 @@ public class Configuracion extends Consultor{
             rs = stmt.executeQuery();
             if (rs.next()) valor = Integer.parseInt(rs.getString("valor"));
         } catch (Exception e) {
-            inf.log("No se logró leer la configuración solicitada: " + e.getMessage());
-            setError("No se logró leer la configuración solicitada: " +
-                    e.getMessage());
-            for (StackTraceElement stackTrace : e.getStackTrace()) {
-                setError(getError() + stackTrace + "<br>");
-            }
+            inf.log(appendError("No se logró leer la configuración solicitada. ") + e.getMessage());
+            appendError(debug? e.getMessage() + ". ": "");
         }
         return valor;
     }

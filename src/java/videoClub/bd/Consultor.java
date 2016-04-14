@@ -3,8 +3,6 @@ package videoClub.bd;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import videoClub.log.Informer;
 
 /**
@@ -14,48 +12,55 @@ import videoClub.log.Informer;
  * @author Emilio Rojas
  */
 public abstract class Consultor {
+    protected final boolean debug = false;
     protected Connection con = null;
-    private String error;
+    private String error = "";
     protected Informer inf;
 
     /**
+     * Asigna y devuelve el string de error.
+     * @param error El error a asignar
+     * @return El error asignado.
+     */
+    protected String setError(String error) {
+        this.error = error != null? error: "";
+        return this.error;
+    }
+
+    /**
+     * Agrega al string de error y devuelve el string de error.
+     * @param error El error a agregar.
+     * @return El error asignado.
+     */
+    protected String appendError(String error) {
+        this.error += error != null? error: "";
+        return error;
+    }
+
+    /**
      * Obtiene el string de error al instante solicitado.
-     * @return 
+     * @return El error.
      */
     public String getError() { return error; }
 
     /**
      * Se crea una conexión con la base de datos si es necesario, y se obtiene
      * esta.
-     * @return 
+     * @return la conexión a la base de datos.
      */
     protected Connection getCon() {
-        if (con == null) {
-            BD bd;
-            bd = new BD(true);
-            con = bd.getCon();
-        }
+        BD bd;
+        bd = new BD();
+        con = bd.getCon();
+        setError(bd.getError());
         return con;
-    }
-
-    /**
-     * Asigna y devuelve el string de error.
-     * Se devuelve el string asignado.
-     * Notese que si se quisiera concatenar con el error anterior, debe hacerse
-     * lo siguiente: <tt>setError(getError()+"mi error");</tt>.
-     * @param error
-     * @return 
-     */
-    protected String setError(String error) {
-        this.error = error;
-        return error;
     }
 
     /**
      * Crea un PreparedStatement con los valores dados.
      * @param sql
      * @param params
-     * @return 
+     * @return
      */
     protected PreparedStatement preparar(String sql, Object... params) {
         PreparedStatement stmt = null;
@@ -73,25 +78,26 @@ public abstract class Consultor {
                 else if (p.getClass() == Boolean.class) stmt.setBoolean(i, (Boolean) p);
                 else stmt.setObject(i, p);
             }
-        } catch (Exception e) {
-            inf.log(setError("No se logró crear la seentencia sql. " + e.getMessage()));
-            inf.log(e.getMessage());
+            appendError(debug? "Se creó el PreparedStatement. ": "");
+        } catch (SQLException e) {
+            inf.log(appendError("No se creó el PreparedStatement. ") + e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage() + ". ": "");
         }
         return stmt;
     }
 
     /**
      * Cierra la conexión con la base de datos.
-     * @return 
+     * @return
      */
     protected boolean close() {
         boolean r = false;
         try {
             con.close();
             r = true;
-        } catch (Exception e) {
-            inf.log(setError("No se logró cerrar la conexión con la base de datos."));
-            inf.log(e.getMessage());
+        } catch (SQLException e) {
+            inf.log(appendError("No se logró cerrar la conexión con la base de datos.") + e.getMessage(), Informer.LVL_WARNING);
+            appendError(debug? e.getMessage(): "");
         }
         return r;
     }

@@ -1,27 +1,68 @@
 package videoClub.bd;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
 import java.util.Properties;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import videoClub.log.Informer;
 
-/**getMySQLDataSource
+/**
  * Maneja la conexión con la base de datos.
  * @author Emilio Rojas
  */
+@Configuration
+@PropertySource("classpath:dbconfig.properties")
 public final class BD {
+    private boolean debug = false;
     private Connection con;
-    private Properties config;
-    private String url;
+    private Properties config; // parámetros para conexión con la base de datos.
+    private String url; // url para el jdbc.
     private String user;
     private String pass;
-    private String error;
-    
-    private Informer inf;
+    private String error = "";
+    private Informer inf; // logueo para la aplicación.
+
+    @Autowired
+    Environment dbconfig;
+    class ConfigTemplate {
+        private String driver, host, name, pass, port, user;
+
+        public String getDriver() { return driver; }
+        public void setDriver(String driver) { this.driver = driver; }
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getPass() { return pass; }
+        public void setPass(String pass) { this.pass = pass; }
+
+        public String getPort() { return port; }
+        public void setPort(String port) { this.port = port; }
+
+        public String getUser() { return user; }
+        public void setUser(String user) { this.user = user; }
+    }
+
+    @Bean
+    public ConfigTemplate getConfig() {
+        ConfigTemplate valores = new ConfigTemplate();
+        valores.setDriver(dbconfig.getProperty("driver"));
+        valores.setHost(dbconfig.getProperty("host"));
+        valores.setName(dbconfig.getProperty("name"));
+        valores.setPass(dbconfig.getProperty("pass"));
+        valores.setPort(dbconfig.getProperty("port"));
+        valores.setUser(dbconfig.getProperty("user"));
+        return valores;
+     }
+
     /**
     * Inicia un objeto BD con o sin conexión establecida según el parámetro
     * <pre>conectar</pre>.
@@ -30,11 +71,14 @@ public final class BD {
     public BD(boolean conectar) {
         inf = Informer.get();
         try {
+            // Se indica que el driver a utilizar es el de mysql.
+            // Requiere el jdbc para mysql en el proyecto.
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+            error += debug? "Driver registrado. ": "";
         } catch (SQLException e) {
-            inf.log("No se logró registrar el driver.", Informer.LVL_WARNING);
-            inf.log(e.getMessage(), Informer.LVL_ERROR);
-            error = "Driver no registrado: " + e.getMessage();
+            inf.log("Driver no registrado. " + e.getMessage(), Informer.LVL_ERROR);
+            error += "Driver no registrado. ";
+            error += debug? e.getMessage(): "";
         }
         if (conectar) conectar();
     }
@@ -58,27 +102,13 @@ public final class BD {
      * Asigna los parámetros para la conexión con la base de datos.
      */
     private void setConfig() {
-        /*
-        Idealmente los parámetros se obtienen de un archivo editable, esto
-        no está funcionando. QUeda previsto utilizarse de esta manera.
-        */
-        /*
-        Properties conf = new Properties();
-        try (InputStream p = this.getClass().getClassLoader().getResourceAsStream("db.properties")) {
-            conf.load(p);
-        } catch (Exception e) {
-            error = e.getMessage();
-            log.warning("No se logró obtener la configuración de la base de datos.");
-            log.info(e.getMessage());
-        }
-        */
-
-        String driver = "jdbc:mysql://"; // conf.getProperty("db.driver");
-        String host = "127.0.0.1"; // conf.getProperty("db.host");
-        String port = "3306"; // conf.getProperty("db.port");
-        String name = "videoclub"; // conf.getProperty("db.name");
-        user = "emilio"; // conf.getProperty("db.user");
-        pass = "pass"; // conf.getProperty("db.pass");
+        // ConfigTemplate valores = getConfig();
+        String driver = "jdbc:mysql://"; // valores.getDriver();
+        String host = "127.0.0.1"; // valores.getHost();
+        String port = "3306"; // valores.getPort();
+        String name = "videoclub"; // valores.getName();
+        user = "emilio"; // valores.getUser();
+        pass = "pass"; // valores.getPass();
         url = driver + host + ":" + port + "/" + name;
     }
 
@@ -88,13 +118,15 @@ public final class BD {
      */
     public Connection conectar() {
         setConfig();
+        con = null;
         try {
             con = DriverManager.getConnection(url, user, pass);
             inf.log("Conexión con la bse de datos creada.", Informer.LVL_DEBUG);
+            error += debug? "Conexión con la base de datos creada. ": "";
         } catch (Exception e) {
-            inf.log("No se logró conectar a la base de datos.", Informer.LVL_WARNING);
-            inf.log(e.getMessage(), Informer.LVL_ERROR);
-            error = "Conexión no creada" + e.getMessage();
+            inf.log("Conexión con la base de datos no creada. " + e.getMessage(), Informer.LVL_ERROR);
+            error += "Conexión con la base de datos no creada. ";
+            error += debug? e.getMessage(): "";
         }
         return con;
     }

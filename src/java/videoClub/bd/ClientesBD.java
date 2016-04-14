@@ -1,15 +1,14 @@
 package videoClub.bd;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import videoClub.sistema.Cliente;
-
 import videoClub.log.Informer;
 
 public class ClientesBD extends Consultor{
-    public ClientesBD() {
-        inf = Informer.get();
-    }
+    public ClientesBD() { inf = Informer.get(); }
 
     public boolean agregar(Cliente cliente) {
         boolean exito = false;
@@ -25,10 +24,12 @@ public class ClientesBD extends Consultor{
                 cliente.getDireccion()
             );
             exito = stmt.executeUpdate() == 1;
-            inf.log("Agregando cliente a la base de datos: " + Boolean.toString(exito)); 
-        } catch (Exception e) {
-            inf.log(setError("No se logró agregar el cliente a la base de datos: " + e.getMessage()));
-            inf.log(e.getMessage());
+            inf.log("Agregando cliente a la base de datos: " +
+                Boolean.toString(exito), Informer.LVL_DEBUG);
+        } catch (SQLException e) {
+            inf.log(appendError("No se agregó el cliente a la base de datos. ") +
+                    e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return exito;
     }
@@ -36,10 +37,7 @@ public class ClientesBD extends Consultor{
     public Cliente obtenerConId(int id) {
         Cliente cliente = null;
         try {
-            PreparedStatement stmt = preparar(
-                "call getCliente(?)",
-                id
-            );
+            PreparedStatement stmt = preparar("call getCliente(?)", id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 cliente = new Cliente(
@@ -53,40 +51,31 @@ public class ClientesBD extends Consultor{
                     rs.getString("direccion")
                 );
             }
-        } catch (Exception e) {
-            inf.log(
-                    "No se logró leer el cliente con id "
-                    +  id +" de la base de datos: " + e.getMessage() + ". ");
-            inf.log(e.getMessage());
-            setError(getError() + "No se logró leer el cliente con id "
-                    + id + " de la base de datos: " + e.getMessage() + ". <br>");
-            for (StackTraceElement stackTrace : e.getStackTrace()) {
-                setError(getError() + stackTrace + "<br>");
-            }
+        } catch (SQLException e) {
+            inf.log(appendError("No se obtuvo el cliente con id " + id +
+                    " de la base de datos. "
+                ) +
+                e.getMessage(), Informer.LVL_ERROR
+            );
+            appendError(debug? e.getMessage(): "");
         }
         return cliente;
     }
 
-    public Cliente obtener(int cedula) {
-        return obtenerConId(obtenerConCedula(cedula));
-    }
+    public ArrayList<Cliente> obtener() { return obtener(0, 0); }
 
-    public ArrayList<Cliente> obtener() {
-        return obtener(0, 0);
-    }
+    public Cliente obtener(int cedula) { return obtenerConId(obtenerConCedula(cedula)); }
 
     public ArrayList<Cliente> obtener(int cantidad, int pagina) {
         ArrayList<Cliente> lc = null;
         try {
-            PreparedStatement stmt = preparar(
-                "call getClientes(?, ?)",
-                cantidad,
-                pagina
-            );
+            PreparedStatement stmt = preparar("call getClientes(?, ?)", cantidad, pagina);
             lc = rsToListaClientes(stmt.executeQuery());
-        } catch (Exception e) {
-            inf.log(setError("No se logró leer los clientes de "
-                    + "la base de datos: " + e.getMessage()));
+            appendError(debug? "Clientes obtenidos. ": "");
+        } catch (SQLException e) {
+            inf.log(appendError("No se leyeron los clientes de la base de datos. ") +
+            e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return lc;
     }
@@ -94,12 +83,11 @@ public class ClientesBD extends Consultor{
     public ArrayList<Cliente> clientesMorosos() {
         ArrayList<Cliente> lc = null;
         try {
-            PreparedStatement stmt = getCon()
-                    .prepareStatement("call getClientesMorosos()");
+            PreparedStatement stmt = getCon().prepareStatement("call getClientesMorosos()");
             lc = rsToListaClientes(stmt.executeQuery());
-        } catch (Exception e) {
-            inf.log(setError("No se logró obtener la lista de los clientes morososs."));
-            inf.log(e.getMessage());
+        } catch (SQLException e) {
+            inf.log(appendError("No se logró obtener la lista de los clientes morosos. ") +
+            e.getMessage(), Informer.LVL_ERROR);
         }
         return lc;
     }
@@ -119,11 +107,12 @@ public class ClientesBD extends Consultor{
             stmt.setString(8, cliente.getDireccion());
 
             exito = stmt.executeUpdate() == 1;
-            inf.log("Actualizando cliente en la base de datos: " + Boolean.toString(exito));
-        } catch (Exception e) {
-            inf.log("No se logró actualizar el cliente con cedula " + cliente.getCedula() + " de la base de datos.");
-            inf.log(e.getMessage());
-            setError("No se logró actualizar el cliente de la base de datos. " + e.getMessage());
+            inf.log("Actualizando cliente en la base de datos: " +
+                Boolean.toString(exito), Informer.LVL_DEBUG);
+        } catch (SQLException e) {
+            inf.log(appendError("No se actualizó el cliente con cedula " +
+                cliente.getCedula() + " de la base de datos.") + e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return exito;
     }
@@ -131,22 +120,20 @@ public class ClientesBD extends Consultor{
     public boolean eliminar(int id) {
         boolean exito = false;
         try {
-            PreparedStatement stmt = getCon()
-                    .prepareStatement("call deleteCliente(?)");
+            PreparedStatement stmt = getCon().prepareStatement("call deleteCliente(?)");
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
-            if(rs.next()) {
+            if (rs.next()) {
                 exito = rs.getInt("eliminado") >= 1;
             }
             if (!exito) {
-                setError("No se pudo eliminar el cliente de la base de datos. " + getError());
+                appendError(!exito? "No se eliminó el cliente de la base de datos. ": "");
             }
-            inf.log("Eliminando cliente en la base de datos: " + Boolean.toString(exito));
-        } catch (Exception e) {
-            inf.log("No se logró eliminar el cliente con id " + id + " de la base de datos.");
-            inf.log(e.getMessage());
-            setError("No se logró eliminar el cliente con id "
-                    + id + " de la base de datos: " + e.getMessage());
+            inf.log("Eliminando cliente en la base de datos: " + Boolean.toString(exito), Informer.LVL_DEBUG);
+        } catch (SQLException e) {
+            inf.log(appendError("No se eliminó el cliente con id " + id + " de la base de datos.") +
+                e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return exito;
     }
@@ -158,9 +145,10 @@ public class ClientesBD extends Consultor{
                     .prepareStatement("call esMoroso(?)");
             stmt.setInt(1, obtenerConCedula(cedula));
             moroso = stmt.executeQuery().getInt("moroso") > 0;
-        } catch (Exception e) {
-            inf.log("No se logró determinar la morosidad del cliente con cedula " + cedula);
-            inf.log(e.getMessage());
+        } catch (SQLException e) {
+            inf.log(appendError("No se determinó la morosidad del cliente con cédula " + cedula) +
+                e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return moroso;
     }
@@ -168,13 +156,13 @@ public class ClientesBD extends Consultor{
     public int contarPrestamosCliente(int cedula) {
         int prestamos = 0;
         try {
-            PreparedStatement stmt = getCon()
-                    .prepareStatement("call contarPrestamosCliente(?)");
+            PreparedStatement stmt = getCon().prepareStatement("call contarPrestamosCliente(?)");
             stmt.setInt(1, obtenerConCedula(cedula));
             prestamos = stmt.executeQuery().getInt("prestamos");
-        } catch (Exception e) {
-            inf.log("No se logró contar los prestamos del cliente con cedula " + cedula);
-            inf.log(e.getMessage());
+        } catch (SQLException e) {
+            inf.log(appendError("No se logró contar los prestamos del cliente con cedula " + cedula + ". ") +
+                e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return prestamos;
     }
@@ -182,20 +170,19 @@ public class ClientesBD extends Consultor{
     private int obtenerConCedula(int cedula) {
         int id = 0;
         try {
-            PreparedStatement stmt = getCon()
-                    .prepareStatement("call getIdFromCedula(?)");
+            PreparedStatement stmt = getCon().prepareStatement("call getIdFromCedula(?)");
             stmt.setInt(1, cedula);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 id = rs.getInt("idCliente");
             }
             if (id <= 0) {
-                inf.log("No se encontró el cliente con cédula " + cedula);
-                setError("No se encontró el cliente con cédula " + cedula);
+                inf.log(appendError("No se encontró el cliente con cédula " + cedula + ". "), Informer.LVL_ERROR);
             }
-        } catch (Exception e) {
-            inf.log(setError("No se logró crear la lista de clientes. "+ e.getMessage()));
-            inf.log(e.getMessage());
+        } catch (SQLException e) {
+            inf.log(appendError("No se logró crear la lista de clientes. ") +
+                e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
         }
         return id;
     }
@@ -216,13 +203,12 @@ public class ClientesBD extends Consultor{
                         rs.getString("direccion")
                 ));
             }
-        } catch (Exception e) {
-            inf.log(setError("No se logró crear la lista de clientes." + e.getMessage()));
-            inf.log(e.getMessage());
+            appendError(debug? "Se convirtió el ResultSet a una lista de clientes. ": "");
+        } catch (SQLException e) {
+            inf.log(appendError("No se logró crear la lista de clientes. ") +
+                e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage() + ". ": "");
         }
-
         return lc;
     }
-    
-    
 }
