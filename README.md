@@ -17,7 +17,7 @@ Para poder compilar y correr este proyecto se debe tener en cuenta lo siguiente:
 - Se necesitará MySQL. La versión 5.7 fue utilizada para el desarrollo.
 - Las siguientes librerias de java:
   - SpringMVC disponible en NetBeans. Se pueden buscar y descargar también los jar necesarios en [este](http://mvnrepository.com/artifact/org.springframework) enlace.
-  - Driver JDBC para MySQL, netBeans provee ```MySQL JDBC Driver```. Se puede descargar también en [este](http://mvnrepository.com/artifact/mysql/mysql-connector-java) enlace.
+  - Driver JDBC para MySQL, NetBeans provee ```MySQL JDBC Driver```. Se puede descargar también en [este](http://mvnrepository.com/artifact/mysql/mysql-connector-java) enlace.
   - Gson de Google [```gson-2.6.2.jar```](http://mvnrepository.com/artifact/com.google.code.gson/gson/2.6.2).
 - Se hace uso de las siguientes librerías, (integradas dentro del proyecto):
   - [Bootstrap](http://getbootstrap.com/) de Twitter.
