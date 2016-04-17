@@ -77,6 +77,11 @@ public class ClientesBD extends Consultor{
             e.getMessage(), Informer.LVL_ERROR);
             appendError(debug? e.getMessage(): "");
         }
+        catch (NullPointerException e) {
+            inf.log(appendError("NullPointerException. ") +
+            e.getMessage(), Informer.LVL_ERROR);
+            appendError(debug? e.getMessage(): "");
+        }
         return lc;
     }
 

@@ -82,6 +82,8 @@ public abstract class Consultor {
         } catch (SQLException e) {
             inf.log(appendError("No se creó el PreparedStatement. ") + e.getMessage(), Informer.LVL_ERROR);
             appendError(debug? e.getMessage() + ". ": "");
+        } catch (NullPointerException e) {
+            inf.log(appendError("NullPointerException@Consultor.preparar(). "), Informer.LVL_ERROR);
         }
         return stmt;
     }
